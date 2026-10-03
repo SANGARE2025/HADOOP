@@ -1,0 +1,17 @@
+apiVersion: 1
+
+datasources:
+  - name: Postgres Churn
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: churn
+    user: churn
+    isDefault: true
+    editable: true
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1600
+      timescaledb: false
+    secureJsonData:
+      password: churn

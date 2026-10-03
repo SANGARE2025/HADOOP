@@ -1,0 +1,234 @@
+{
+  "title": "Customer Churn - Batch + Streaming",
+  "uid": "churn-main",
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
+  "refresh": "5s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "pays",
+        "type": "query",
+        "datasource": null,
+        "query": "SELECT DISTINCT pays FROM batch_pays_tranche ORDER BY pays",
+        "refresh": 2,
+        "includeAll": false,
+        "current": {
+          "text": "France",
+          "value": "France"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Clients traites (streaming, depuis demarrage)",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT nb_clients FROM streaming_cumule WHERE id = 1",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Solde total cumule (streaming)",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT solde_total FROM streaming_cumule WHERE id = 1",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Alertes detectees (streaming)",
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT nb_alertes FROM streaming_cumule WHERE id = 1",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Solde moyen par client (streaming)",
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT solde_total / NULLIF(nb_clients, 0) AS solde_moyen FROM streaming_cumule WHERE id = 1",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "type": "bargauge",
+      "title": "Solde cumule par pays (streaming)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT pays, solde_total FROM streaming_pays ORDER BY solde_total DESC",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "type": "bargauge",
+      "title": "Clients par tranche d'age (streaming)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT tranche, nb_clients FROM streaming_tranche ORDER BY tranche",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Top 10 des soldes - derniere fenetre (streaming)",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT customer_id AS \"Client\", pays AS \"Pays\", solde AS \"Solde\", credit_score AS \"Score credit\" FROM streaming_top_soldes WHERE window_start = (SELECT max(window_start) FROM streaming_top_soldes) ORDER BY solde DESC LIMIT 10",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "table",
+      "title": "Dernieres alertes (streaming)",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT event_time AS \"Heure\", customer_id AS \"Client\", pays AS \"Pays\", type AS \"Type\", solde AS \"Solde\", credit_score AS \"Score credit\" FROM streaming_alertes ORDER BY id DESC LIMIT 10",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "barchart",
+      "title": "Solde total par tranche d'age (batch, pays = $pays)",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT tranche, solde_total AS \"Solde total\" FROM batch_pays_tranche WHERE pays = '$pays' ORDER BY tranche",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 10,
+      "type": "barchart",
+      "title": "Nombre de clients par tranche d'age (batch, pays = $pays)",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT tranche, nb_clients AS \"Clients\" FROM batch_pays_tranche WHERE pays = '$pays' ORDER BY tranche",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+target/
+checkpoint/
+__pycache__/
+*.pyc
+model.joblib
+metrics.json
